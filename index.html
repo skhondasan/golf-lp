@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ゴルフコンペ動画撮影・編集サービス | SKふみちゃん</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: oklch(0.15 0.01 280);
+            --bg-medium: oklch(0.25 0.02 280);
+            --accent-green: oklch(0.65 0.15 145);
+            --accent-orange: oklch(0.68 0.18 45);
+            --text-white: oklch(0.98 0.005 280);
+            --text-gray: oklch(0.75 0.01 280);
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-white);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        .hero {
+            height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-medium) 100%);
+            z-index: 1;
+        }
+
+        .hero-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                repeating-linear-gradient(0deg, transparent, transparent 49px, oklch(0.3 0.02 280 / 0.3) 49px, oklch(0.3 0.02 280 / 0.3) 50px),
+                repeating-linear-gradient(90deg, transparent, transparent 49px, oklch(0.3 0.02 280 / 0.3) 49px, oklch(0.3 0.02 280 / 0.3) 50px);
+            z-index: 2;
+            opacity: 0.4;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 3;
+            text-align: center;
+            padding: 2rem;
+            max-width: 1200px;
+        }
+
+        .hero-eyebrow {
+            font-size: clamp(0.875rem, 2vw, 1.125rem);
+            letter-spacing: 0.3em;
+            color: var(--accent-orange);
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .hero-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(3rem, 12vw, 10rem);
+            line-height: 0.9;
+            margin-bottom: 2rem;
+            letter-spacing: 0.05em;
+            background: linear-gradient(135deg, var(--text-white) 0%, var(--accent-green) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1.25rem, 3vw, 2.5rem);
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+            color: var(--text-white);
+        }
+
+        .hero-description {
+            font-size: clamp(1rem, 2vw, 1.5rem);
+            color: var(--text-gray);
+            margin-bottom: 3rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-portrait {
+            position: absolute;
+            right: 5%;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 4;
+            width: clamp(200px, 25vw, 450px);
+            height: auto;
+            filter: drop-shadow(0 20px 60px oklch(0 0 0 / 0.6));
+        }
+
+        @media (max-width: 1024px) {
+            .hero-portrait {
+                display: none;
+            }
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 1.5rem 4rem;
+            background: var(--accent-orange);
+            color: var(--bg-dark);
+            font-size: clamp(1rem, 2vw, 1.5rem);
+            font-weight: 900;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, oklch(1 0 0 / 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .cta-button:hover::before {
+            left: 100%;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px oklch(0.68 0.18 45 / 0.5);
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 3rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3;
+            font-size: 0.875rem;
+            color: var(--text-gray);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-10px); }
+        }
+
+        .section {
+            padding: clamp(3rem, 10vw, 8rem) clamp(1.5rem, 5vw, 3rem);
+            position: relative;
+        }
+
+        .section-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(2.5rem, 8vw, 6rem);
+            margin-bottom: 3rem;
+            text-align: center;
+            letter-spacing: 0.05em;
+        }
+
+        .pain-points {
+            background: var(--bg-medium);
+        }
+
+        .pain-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .pain-card {
+            background: var(--bg-dark);
+            padding: 3rem 2rem;
+            border-left: 4px solid var(--accent-orange);
+            transition: all 0.3s ease;
+        }
+
+        .pain-card:hover {
+            transform: translateX(10px);
+            border-left-width: 8px;
+        }
+
+        .pain-card h3 {
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            margin-bottom: 1rem;
+            color: var(--accent-orange);
+        }
+
+        .pain-card p {
+            font-size: clamp(1rem, 2vw, 1.25rem);
+            color: var(--text-gray);
+        }
+
+        .solution {
+            background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-medium) 100%);
+        }
+
+        .solution-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .feature-list {
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+            margin-bottom: 4rem;
+        }
+
+        .feature-item {
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+            padding: 2rem;
+            background: var(--bg-dark);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .feature-item:hover {
+            border-color: var(--accent-green);
+        }
+
+        .feature-number {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(3rem, 6vw, 5rem);
+            color: var(--accent-green);
+            line-height: 1;
+            min-width: 80px;
+        }
+
+        .feature-content h3 {
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
+            margin-bottom: 1rem;
+            font-weight: 900;
+        }
+
+        .feature-content p {
+            font-size: clamp(1rem, 2vw, 1.25rem);
+            color: var(--text-gray);
+        }
+
+        .gallery {
+            background: var(--bg-dark);
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .gallery-item {
+            position: relative;
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
+            background: var(--bg-medium);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .gallery-item:hover {
+            transform: scale(1.02);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .pricing {
+            background: var(--bg-medium);
+        }
+
+        .pricing-card {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--bg-dark);
+            padding: clamp(2rem, 5vw, 4rem);
+            border: 3px solid var(--accent-orange);
+            position: relative;
+        }
+
+        .pricing-badge {
+            position: absolute;
+            top: -1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-orange);
+            color: var(--bg-dark);
+            padding: 0.5rem 2rem;
+            font-weight: 900;
+            font-size: 1rem;
+            letter-spacing: 0.1em;
+        }
+
+        .pricing-amount {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(3rem, 10vw, 6rem);
+            text-align: center;
+            margin: 2rem 0;
+            color: var(--accent-green);
+        }
+
+        .pricing-includes {
+            list-style: none;
+            margin: 2rem 0;
+        }
+
+        .pricing-includes li {
+            padding: 1rem 0;
+            border-bottom: 1px solid oklch(0.3 0.02 280);
+            font-size: clamp(1rem, 2vw, 1.5rem);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .pricing-includes li::before {
+            content: '✓';
+            color: var(--accent-green);
+            font-weight: 900;
+            font-size: 1.5em;
+        }
+
+        .additional-options {
+            background: var(--bg-dark);
+            padding: 3rem;
+            margin-top: 3rem;
+            border: 2px solid var(--accent-green);
+        }
+
+        .additional-options h3 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            color: var(--accent-green);
+            margin-bottom: 2rem;
+            text-align: center;
+            letter-spacing: 0.05em;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .option-item {
+            padding: 1.5rem;
+            background: var(--bg-medium);
+            border-left: 3px solid var(--accent-green);
+            font-size: clamp(1rem, 2vw, 1.25rem);
+            font-weight: 700;
+        }
+
+        .testimonials {
+            background: var(--bg-medium);
+        }
+
+        .testimonial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .testimonial-card {
+            background: var(--bg-dark);
+            padding: 2.5rem;
+            position: relative;
+            border-top: 4px solid var(--accent-orange);
+        }
+
+        .testimonial-card::before {
+            content: '"';
+            position: absolute;
+            top: 1rem;
+            left: 1.5rem;
+            font-size: 5rem;
+            color: var(--accent-orange);
+            opacity: 0.3;
+            font-family: Georgia, serif;
+            line-height: 1;
+        }
+
+        .testimonial-name {
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            font-weight: 900;
+            color: var(--accent-orange);
+            margin-bottom: 1rem;
+        }
+
+        .testimonial-text {
+            font-size: clamp(1rem, 2vw, 1.25rem);
+            color: var(--text-gray);
+            line-height: 1.8;
+        }
+
+        .team-members {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin: 4rem 0;
+            flex-wrap: wrap;
+        }
+
+        .team-member {
+            text-align: center;
+        }
+
+        .team-member img {
+            width: 250px;
+            height: 250px;
+            object-fit: cover;
+            border: 4px solid var(--accent-orange);
+            margin-bottom: 1rem;
+        }
+
+        .team-member-name {
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            font-weight: 900;
+            color: var(--text-white);
+        }
+
+        .team {
+            background: var(--bg-dark);
+        }
+
+        .team-intro {
+            max-width: 900px;
+            margin: 0 auto 4rem;
+            text-align: center;
+            font-size: clamp(1.25rem, 3vw, 2rem);
+            color: var(--text-gray);
+        }
+
+        .honesty-statement {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 3rem;
+            background: var(--bg-medium);
+            border-left: 6px solid var(--accent-orange);
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
+            font-weight: 900;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .honesty-statement .highlight {
+            color: var(--accent-orange);
+        }
+
+        .final-cta {
+            background: linear-gradient(180deg, var(--bg-medium) 0%, var(--bg-dark) 100%);
+            padding: clamp(4rem, 15vw, 10rem) clamp(1.5rem, 5vw, 3rem);
+            text-align: center;
+        }
+
+        .final-cta-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(2.5rem, 8vw, 7rem);
+            margin-bottom: 2rem;
+            letter-spacing: 0.05em;
+        }
+
+        .final-cta-text {
+            font-size: clamp(1.25rem, 3vw, 2rem);
+            color: var(--text-gray);
+            margin-bottom: 3rem;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* キャッチコピー3案パネル */
+        .catchcopy-panel {
+            background: var(--bg-dark);
+            border: 2px solid oklch(0.35 0.04 280);
+            padding: clamp(2rem, 5vw, 4rem);
+            max-width: 1000px;
+            margin: 0 auto 5rem;
+            text-align: center;
+        }
+        .catchcopy-panel .label {
+            font-size: 0.875rem;
+            letter-spacing: 0.2em;
+            color: var(--accent-green);
+            font-weight: 700;
+            margin-bottom: 2rem;
+            display: block;
+        }
+        .catchcopy-options {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .catchcopy-option {
+            padding: 1.5rem 2rem;
+            background: var(--bg-medium);
+            border-left: 4px solid var(--accent-orange);
+            text-align: left;
+            font-size: clamp(1rem, 2.5vw, 1.5rem);
+            font-weight: 900;
+            line-height: 1.5;
+        }
+        .catchcopy-option .option-label {
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            color: var(--accent-orange);
+            font-weight: 700;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        /* フロー */
+        .flow-section {
+            background: var(--bg-medium);
+        }
+        .flow-steps {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+        }
+        .flow-step {
+            flex: 1;
+            min-width: 200px;
+            max-width: 260px;
+            text-align: center;
+            position: relative;
+        }
+        .flow-step-num {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 4rem;
+            color: var(--accent-green);
+            line-height: 1;
+        }
+        .flow-step-title {
+            font-size: clamp(1.125rem, 2.5vw, 1.5rem);
+            font-weight: 900;
+            margin: 0.5rem 0;
+        }
+        .flow-step-desc {
+            font-size: clamp(0.875rem, 1.5vw, 1rem);
+            color: var(--text-gray);
+        }
+        .flow-arrow {
+            font-size: 2rem;
+            color: var(--accent-orange);
+            padding-top: 2rem;
+            flex-shrink: 0;
+        }
+        @media (max-width: 768px) {
+            .flow-arrow { display: none; }
+            .feature-item { flex-direction: column; }
+            .pain-grid { grid-template-columns: 1fr; }
+        }
+
+        .image-placeholder {
+            background: linear-gradient(135deg, oklch(0.3 0.05 145) 0%, oklch(0.25 0.03 145) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: oklch(0.6 0.08 145);
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            text-align: center;
+            padding: 2rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- サイトヘッダー（ロゴ） -->
+    <header style="position:fixed; top:0; left:0; width:100%; z-index:100; padding:0.75rem 2rem; display:flex; align-items:center; background:oklch(0.15 0.01 280 / 0.85); backdrop-filter:blur(8px);">
+        <img src="assets/rogo.png" alt="SKふみちゃん" style="height:52px; width:auto;">
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-grid"></div>
+        <div class="hero-content">
+            <div class="hero-eyebrow">ゴルフコンペ幹事を任された経営者の方へ</div>
+            <h1 class="hero-title" style="font-family:'Noto Sans JP',sans-serif; font-size:clamp(3.5rem,10vw,9rem); letter-spacing:0.02em; font-weight:900; white-space:nowrap;">コンペを、作品に。</h1>
+            <p class="hero-subtitle">幹事のあなたが、今年いちばん感謝される日になる。</p>
+            <p class="hero-description">
+                当日帯同・自然な撮影・ダイジェスト動画を納品。<br>
+                参加者全員が「また来たい」と言う、語り継がれるコンペに。
+            </p>
+            <a href="mailto:skhondasan@gmail.com" class="cta-button">まずはお問い合わせください →</a>
+        </div>
+        <div class="scroll-indicator">
+            <span>SCROLL</span>
+            <span>↓</span>
+        </div>
+    </section>
+
+    <!-- ================================================
+         Pain Points — 幹事の悩みに共感
+    ================================================ -->
+    <section class="section pain-points">
+        <h2 class="section-title">社長！こんな悩み、ありませんか？</h2>
+        <div class="pain-grid">
+            <div class="pain-card">
+                <h3>幹事を頼まれたけど、正直めんどくさい</h3>
+                <p>断れないから引き受けた。でも本音は「誰かやってくれ」。どうせやるなら最小限の手間で、最大限に格好つけたい。</p>
+            </div>
+            <div class="pain-card">
+                <h3>景品より記憶に残る"何か"が欲しい</h3>
+                <p>景品を変えても、コースを変えても「いつも通り」で終わる。参加者の記憶に刻まれる、圧倒的な差をつけたい。</p>
+            </div>
+            <div class="pain-card">
+                <h3>「さすが社長」と思われたい</h3>
+                <p>コンペが終わった後も「あの社長のコンペは一味違う」と語られたい。それが幹事としての、社長としての矜持。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- YouTube実績 -->
+    <section class="section" style="background: var(--bg-dark);">
+        <p style="text-align:center; color: var(--text-gray); font-size: clamp(1rem, 2vw, 1.25rem); margin-bottom: 2rem;">
+            実際の撮影・編集クオリティをご確認ください
+        </p>
+        <center><iframe width="560" height="315" src="https://www.youtube.com/embed/fWEk3ucfCDw" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="max-width:100%;"></iframe></center>
+    </section>
+
+    <!-- ================================================
+         Solution — 提供価値
+    ================================================ -->
+    <section class="section solution">
+        <h2 class="section-title">私たちにできること</h2>
+        <div class="solution-content">
+            <div class="feature-list">
+                <div class="feature-item">
+                    <div class="feature-number">01</div>
+                    <div class="feature-content">
+                        <h3>当日帯同・プレーの邪魔をしない自然な撮影</h3>
+                        <p>コンペ当日にカメラマンが帯同します。プレーヤーの流れを乱さず、ベストショットや笑顔の瞬間を自然に捉えます。「いつの間に撮ってたの？」と言われる距離感が私たちのスタイルです。</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-number">02</div>
+                    <div class="feature-content">
+                        <h3>参加者全員が楽しめるダイジェスト動画を制作</h3>
+                        <p>撮影素材を丁寧に編集し、コンペの"名シーン"を詰め込んだダイジェスト動画を納品します。二次会や打ち上げで流せば、その場が一気に盛り上がります。</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-number">03</div>
+                    <div class="feature-content">
+                        <h3>幹事の評価が、段違いに上がります</h3>
+                        <p>「今年のコンペ、最高でした」「あの動画、家族に見せたら喜んでました」——そんな言葉が届くようになります。景品より、コースより、"あの動画"が今年の最高の土産になります。</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-number">04</div>
+                    <div class="feature-content">
+                        <h3>申し込みから納品まで、シンプルな3ステップ</h3>
+                        <p>難しい手続きはありません。ご相談→当日撮影→動画納品。幹事さんの準備の手間を増やさずに、コンペのクオリティだけを大きく引き上げます。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================
+         Flow — シンプルな3ステップ
+    ================================================ -->
+    <section class="section flow-section">
+        <h2 class="section-title">ご利用の流れ</h2>
+        <div class="flow-steps">
+            <div class="flow-step">
+                <div class="flow-step-num">01</div>
+                <div class="flow-step-title">ご相談・お申し込み</div>
+                <div class="flow-step-desc">コンペの日程・規模をお知らせください。内容に合ったプランをご提案します。（相談・見積もりは有償です）</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+                <div class="flow-step-num">02</div>
+                <div class="flow-step-title">当日帯同・撮影</div>
+                <div class="flow-step-desc">プレーの邪魔をしない自然な撮影で、コンペの"全部"を記録します。</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+                <div class="flow-step-num">03</div>
+                <div class="flow-step-title">動画編集・納品</div>
+                <div class="flow-step-desc">ダイジェスト動画を編集して納品。二次会・SNS・YouTube、用途は自由です。</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Key Promise -->
+    <section class="section" style="background: var(--bg-dark);">
+        <div style="max-width: 1000px; margin: 0 auto; text-align: center;">
+            <div style="position: relative; margin-bottom: 3rem;">
+                <img src="uploads/Snapshot_60.PNG" alt="コンペのハイライト" style="width: 100%; height: auto; border: 3px solid var(--accent-orange);">
+            </div>
+            <h2 style="font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.5rem, 8vw, 6rem); margin-bottom: 2rem; color: var(--accent-orange); letter-spacing: 0.05em;">「今年のコンペ、最高でした」</h2>
+            <p style="font-size: clamp(1.5rem, 3vw, 2.5rem); font-weight: 900; line-height: 1.6;">その言葉を、あなたへ届けます。</p>
+        </div>
+    </section>
+
+    <!-- ================================================
+         Gallery — 実績イメージ
+    ================================================ -->
+    <section class="section gallery">
+        <h2 class="section-title">こんな動画をお届けします</h2>
+        <div class="gallery-grid">
+            <div class="gallery-item">
+                <img src="uploads/Snapshot_1.PNG" alt="ゴルフコンペ撮影シーン">
+            </div>
+            <div class="gallery-item">
+                <img src="uploads/Snapshot_27.PNG" alt="ゴルフコンペ撮影シーン">
+            </div>
+            <div class="gallery-item">
+                <img src="uploads/Snapshot_52.PNG" alt="ゴルフコンペ撮影シーン">
+            </div>
+            <div class="gallery-item">
+                <img src="uploads/Snapshot_83.PNG" alt="ゴルフコンペ撮影シーン">
+            </div>
+            <div class="gallery-item">
+                <img src="uploads/Snapshot_42.PNG" alt="ゴルフコンペ撮影シーン">
+            </div>
+            <div class="gallery-item">
+                <img src="uploads/Snapshot_23.PNG" alt="ゴルフコンペ撮影シーン">
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================
+         Pricing — 料金プラン
+    ================================================ -->
+    <section class="section pricing">
+        <h2 class="section-title">料金プラン</h2>
+        <div class="pricing-card">
+            <div class="pricing-badge">コンペ動画パック</div>
+            <div class="pricing-amount">¥3,000,000〜/日</div>
+            <p style="text-align:center; color:var(--text-gray); font-size:clamp(0.875rem,1.5vw,1rem); margin-bottom:1.5rem;">※飛行機代・移動費・宿泊費はこちら持ち。打ち合わせ・お見積りにも料金が発生します。</p>
+            <ul class="pricing-includes">
+                <li>当日帯同・フルラウンド撮影</li>
+                <li>ダイジェスト動画編集・納品（MP4形式）</li>
+                <li>二次会・打ち上げでの上映サポート</li>
+                <li>YouTube非公開アップロード（オプション）</li>
+                <li>参加者全員の記憶に残るコンペという名の体験</li>
+            </ul>
+            <div class="additional-options">
+                <h3>こんな方も歓迎です</h3>
+                <div class="options-grid">
+                    <div class="option-item">✓ ご家族のみでのご参加も大歓迎</div>
+                    <div class="option-item">✓ 女子会ゴルフも全力対応します</div>
+                    <div class="option-item">✓ 初心者コンペも丁寧に撮ります</div>
+                    <div class="option-item">✓ YouTube公開・非公開どちらも対応</div>
+                    <div class="option-item">✓ 動画データ提供のみも可能です</div>
+                    <div class="option-item">✓ 遠方コンペも交通費別途でご対応</div>
+                    <div class="option-item">✓ 複数回ご依頼の場合はご相談ください</div>
+                    <div class="option-item">✓ その他、なんでもご相談を（有償）</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================
+         Testimonials — 幹事・参加者の声
+    ================================================ -->
+    <section class="section testimonials">
+        <h2 class="section-title">ご利用経験者の声</h2>
+        <div class="testimonial-grid">
+            <div class="testimonial-card">
+                <div class="testimonial-name">Fちゃん ★★★★★</div>
+                <p class="testimonial-text">
+                    撮影した本人ですが、自分で見返しても感動しました。我ながらいい仕事をしたと思います。クオリティには自信があります。ぜひ頼んでください。
+                    <span style="font-size:0.8em; color:var(--accent-orange); display:block; margin-top:0.75rem;">※投稿者と撮影者の関係について、弊社は一切の関知をいたしません。</span>
+                </p>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-name">Yさん ★★★★★</div>
+                <p class="testimonial-text">
+                    一緒にいつもラウンドしている仲間が撮ってくれた動画、本当によかったです。彼のことはよく知っていますが、カメラの腕は本物だと思います。
+                    <span style="font-size:0.8em; color:var(--accent-orange); display:block; margin-top:0.75rem;">※投稿者とサービス提供者の関係については、各自ご想像にお任せします。</span>
+                </p>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-name">Hプロデューサー ★★★★★</div>
+                <p class="testimonial-text">
+                    企画段階から深く関わっておりましたが、完成した動画のクオリティには私自身が一番驚きました。このサービス、絶対に流行ります。私が保証します。
+                    <span style="font-size:0.8em; color:var(--accent-orange); display:block; margin-top:0.75rem;">※本レビューの客観性については、弊社は責任を負いかねます。</span>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================
+         Team / 実績 — 私たちについて
+    ================================================ -->
+    <section class="section team">
+        <h2 class="section-title">私たちについて</h2>
+        <div class="team-members">
+            <div class="team-member">
+                <img src="assets/fumichan-portrait.png" alt="SKふみちゃん" style="object-fit: cover;">
+                <div class="team-member-name">SKふみちゃん</div>
+            </div>
+            <div class="team-member">
+                <img src="assets/yamasan-portrait.png" alt="やまさん" style="object-fit: cover;">
+                <div class="team-member-name">やまさん</div>
+            </div>
+            <div class="team-member">
+                <img src="assets/honda-portrait.png" alt="ほんださん" style="object-fit: cover;">
+                <div class="team-member-name">ほんだP</div>
+            </div>
+        </div>
+        <div class="team-intro">
+            <p>私たちはゴルフを愛するYouTubeクリエイターです。<br>
+            フィールドでの撮影経験と、実際にプレーする目線から<br>
+            「邪魔にならない・でも伝わる」映像を届けます。</p>
+        </div>
+        <div class="honesty-statement">
+            「プレーを止めない。<span class="highlight">でも、一生残る動画を撮る。</span>」<br>
+            それが、私たちにしかできないことです。
+        </div>
+    </section>
+
+    <!-- ================================================
+         Final CTA
+    ================================================ -->
+    <section class="final-cta" id="contact">
+        <h2 class="final-cta-title">今年のコンペを、語り継がれる1日にしませんか？</h2>
+        <p class="final-cta-text">
+            準備の手間は変わりません。<br>
+            でも、参加者の記憶には何十倍も深く残ります。<br>
+            まずはお気軽に、日程と規模だけ教えてください。
+        </p>
+        <a href="mailto:skhondasan@gmail.com" class="cta-button">うっかり問い合わせてみる →</a>
+        <p style="margin-top: 2rem; color: var(--text-gray); font-size: 1rem;">
+            返信は通常24時間以内。まずは日程と参加人数だけ教えてください。
+        </p>
+    </section>
+
+    <script>
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.pain-card, .feature-item, .gallery-item').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
