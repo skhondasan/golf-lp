@@ -611,6 +611,14 @@
             text-align: center;
             padding: 2rem;
         }
+
+        .other-services { background: var(--bg-medium); }
+        .service-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; max-width: 1000px; margin: 0 auto; }
+        .service-link-card { background: var(--bg-dark); padding: 2rem; border: 2px solid oklch(0.35 0.03 280); text-align: center; text-decoration: none; color: var(--text-white); transition: all 0.3s ease; display: block; }
+        .service-link-card:hover { border-color: var(--accent-orange); transform: translateY(-4px); }
+        .service-link-card .slabel { font-size: 0.8rem; letter-spacing: 0.15em; color: var(--accent-orange); font-weight: 700; display: block; margin-bottom: 0.5rem; }
+        .service-link-card .stitle { font-size: clamp(1.25rem, 3vw, 1.75rem); font-weight: 900; margin-bottom: 0.5rem; }
+        .service-link-card .sdesc { font-size: 0.9rem; color: var(--text-gray); }
     </style>
 </head>
 <body>
@@ -867,6 +875,24 @@
     <!-- ================================================
          Final CTA
     ================================================ -->
+
+    <!-- 他のサービス -->
+    <section class="section other-services">
+        <h2 class="section-title" style="font-size:clamp(1.5rem,4vw,3rem); margin-bottom:2rem;">SKふみちゃんの他のサービス</h2>
+        <div class="service-links">
+            <a href="https://skhondasan.github.io/tour-lp/" class="service-link-card">
+                <span class="slabel">ACCOMPANY TOUR</span>
+                <div class="stitle">帯同ツアー</div>
+                <div class="sdesc">ふみちゃんファミリーと1日ゴルフ。爆笑必至。¥1,000,000〜</div>
+            </a>
+            <a href="https://skhondasan.github.io/lp-lp/" class="service-link-card">
+                <span class="slabel">LP PRODUCTION</span>
+                <div class="stitle">LP制作サービス</div>
+                <div class="sdesc">このLPと同じクオリティで制作します。¥98,000〜</div>
+            </a>
+        </div>
+    </section>
+
     <section class="final-cta" id="contact">
         <h2 class="final-cta-title">今年のコンペを、語り継がれる1日にしませんか？</h2>
         <p class="final-cta-text">
